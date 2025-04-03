@@ -1,6 +1,6 @@
+import 'dotenv/config';
 import express from "express";
 import axios from "axios";
-//import * as WebSocket from "ws";
 import { WebSocketServer } from "ws";
 import {
   blockHashbyNumber,
@@ -8,18 +8,18 @@ import {
   getTransactionInfoByHash,
 } from "./blockInfo.js";
 import { convertToHash } from "./utils.js";
-import cors from 'cors'
+import cors from "cors";
 
-const RPC_URL = "http://127.0.0.1:9944";
-const SERVER_PORT = 3001;
-const POLLING_INTERVAL = 3000;
+const RPC_URL = process.env.RPC_URL;
+const SERVER_PORT = process.env.SERVER_PORT;
+const POLLING_INTERVAL = process.env.POLLING_INTERVAL;
 
 const app = express();
 const server = app.listen(SERVER_PORT, () => {
   console.log(`Server running on http://localhost:${SERVER_PORT}`);
 });
 
-app.use(cors())
+app.use(cors());
 
 const wsServer = new WebSocketServer({ server });
 
@@ -36,11 +36,8 @@ wsServer.on("connection", (ws) => {
 });
 
 app.get("/block", async (req, res) => {
-  //console.log('Req',req.query)
   const { number } = req.query;
-  //console.log('Number',number)
   const hash = await blockHashbyNumber(number);
-  //console.log('Hash',hash)
   let blockInfo;
   if (hash) {
     blockInfo = await blockInfoByHash(hash);
@@ -48,7 +45,6 @@ app.get("/block", async (req, res) => {
   let extrinsic = blockInfo?.block?.extrinsics?.map((item, index) => {
     return convertToHash(item);
   });
-  //console.log('Ext',extrinsic)
   if (blockInfo) {
     res.status(200).send({
       ...blockInfo,
@@ -63,12 +59,8 @@ app.get("/block", async (req, res) => {
 });
 
 app.get("/tx", async (req, res) => {
-  //console.log('Req',req.query)
   const { hash } = req.query;
-  //console.log('Number',number)
   const info = await getTransactionInfoByHash(hash);
-
-  //console.log('Ext',extrinsic)
   if (info) {
     res.status(200).send({
       info,
@@ -90,7 +82,7 @@ async function fetchLatestBlock() {
     });
 
     const block = response.data.result;
-    //console.log(block)
+
     const blockNumber = parseInt(block.block.header.number, 16);
     const blockHash = block.block.header.parentHash;
     const extrinsics = block.block.extrinsics;
@@ -99,7 +91,6 @@ async function fetchLatestBlock() {
     if (blockNumber > lastBlockNumber) {
       lastBlockNumber = blockNumber;
 
-      // Extract transaction details
       const transactions = extrinsics.map((extrinsic, index) => ({
         index,
         hash: extrinsic,
@@ -121,5 +112,4 @@ async function fetchLatestBlock() {
   }
 }
 
-// Start polling for new blocks
 setInterval(fetchLatestBlock, POLLING_INTERVAL);

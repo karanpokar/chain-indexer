@@ -11,4 +11,3 @@ export const convertToHash=(hash)=>{
     return `0x${transactionHash}`;
 }
 
-//console.log("Transaction Hash:", transactionHash);
