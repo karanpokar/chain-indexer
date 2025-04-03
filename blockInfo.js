@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import axios from "axios";
 
-const RPC_URL = process.env.RPC_URL //"http://127.0.0.1:9944";
+const RPC_URL = process.env.RPC_URL;
 
 export const blockHashbyNumber = async (number) => {
   try {
